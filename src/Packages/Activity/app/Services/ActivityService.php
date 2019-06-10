@@ -3,7 +3,6 @@
 namespace {{App\}}Services;
 
 use {{App\}}Models\Activity;
-use Illuminate\Support\Facades\Schema;
 
 class ActivityService
 {
@@ -19,7 +18,7 @@ class ActivityService
      */
     public function getByUser($userId, $paginate = null)
     {
-        $query = $this->model->where('user', $userId);
+        $query = $this->model->where('user_id', $userId);
 
         if (!is_null($paginate)) {
             return $query->paginate($paginate);

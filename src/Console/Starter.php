@@ -1,11 +1,11 @@
 <?php
 
-namespace Yab\Laracogs\Console;
+namespace Grafite\Builder\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Artisan;
-use Yab\Laracogs\Traits\FileMakerTrait;
+use Grafite\Builder\Traits\FileMakerTrait;
 
 class Starter extends Command
 {
@@ -16,14 +16,14 @@ class Starter extends Command
      *
      * @var string
      */
-    protected $signature = 'laracogs:starter';
+    protected $signature = 'grafite:starter';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Laracogs will prebuild some common parts of your app';
+    protected $description = 'Grafite Builder will build some common parts of your app';
 
     /**
      * Execute the console command.
@@ -78,17 +78,15 @@ class Starter extends Command
             $this->line('Copying tests...');
             $this->copyPreparedFiles(__DIR__.'/../Packages/Starter/tests', base_path('tests'));
 
-            $this->info('Update the model in: config/auth.php');
-            $this->comment("\n");
-            $this->comment($this->getAppNamespace()."Models\User::class");
-            $this->comment("\n");
+            $this->line('Adjusting Laravel default files...');
+            $this->defaultFileChanger();
 
             $this->info("Build something worth sharing!\n");
 
             if ($this->confirm('Would you like to run the migration?')) {
                 $this->comment('Running command: cd '.base_path().' && composer dump ...');
 
-                exec('cd '.base_path().' && composer dump');
+                exec(sprintf('cd %s && composer dump', escapeshellarg(base_path()));
 
                 // execute migrate artisan command
                 Artisan::call('migrate');
@@ -100,7 +98,24 @@ class Starter extends Command
                 $this->comment('artisan migrate --seed');
             }
         } else {
-            $this->info('You cancelled the laracogs starter');
+            $this->info('You cancelled the grafite:starter');
+        }
+    }
+
+    /**
+     * Clean up files from the install of Laravel etc.
+     */
+    public function defaultFileChanger()
+    {
+        $files = [
+            base_path('config/auth.php'),
+            base_path('config/services.php'),
+        ];
+
+        foreach ($files as $file) {
+            $contents = file_get_contents($file);
+            $contents = str_replace('App\User::class', 'App\Models\User::class', $contents);
+            file_put_contents($file, $contents);
         }
     }
 }
